@@ -493,32 +493,26 @@ async def play_handler_func(client, message):
                         break
                     else:
                         # Private group
-                    try:
+                        is_admin_or_owner = False
+                        try:
+                            bot_member = await client.get_chat_member(message.chat.id, client.me.id)
+                            is_admin_or_owner = bot_member.status in (
+                                ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER
+                            )
+                        except Exception:
+                            is_admin_or_owner = False
+
+                        try:
                             joined_chat = await ast_session.get_chat(message.chat.id)
                             logger.info(f"[play] Assistant {ast_num} already in private group {message.chat.id}")
-                        except Exception as get_chat_error:
-                            logger.info(
-                                f"[play] Assistant {ast_num} not found in private group {message.chat.id}: {get_chat_error}"
-                            )
-                            try:
-                                expire_at = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(seconds=60)
-                                link_obj = await client.create_chat_invite_link(
-                                    message.chat.id,
-                                    member_limit=1,
-                                    expire_date=expire_at
-                                )
-                                joined_chat = await ast_session.join_chat(link_obj.invite_link)
-                                logger.info(f"[play] Assistant {ast_num} joined private group {message.chat.id} via invite link")
-                            except Exception as join_error:
-                                logger.exception(f"[play] Assistant join failed: {join_error}")
-                                await rich_edit(
-                                    massage,
-                                    rich_note(Messages.FAILED_JOIN_GROUP),
-                                    client=client
-                                )
-                                return await remove_active_chat(
-                                    client, target_chat_id, generation=generation
-                                )
+                        except Exception:
+                            if not is_admin_or_owner:
+                                await rich_edit(massage, rich_note(Messages.NEED_INVITE_PERMISSION), client=client)
+                                return await remove_active_chat(client, target_chat_id, generation=generation)
+                            expire_at = _dt.datetime.now(_dt.timezone.utc) + _dt.timedelta(seconds=60)
+                            link_obj = await client.create_chat_invite_link(message.chat.id, member_limit=1, expire_date=expire_at)
+                            joined_chat = await ast_session.join_chat(link_obj.invite_link)
+                            logger.info(f"[play] Assistant {ast_num} joined private group {message.chat.id} via invite link")
                         target_chat = joined_chat if (joined_chat and hasattr(joined_chat, "id")) else message.chat
                         state.mark_member(ast_num, message.chat.id)
                         break
