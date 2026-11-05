@@ -5,7 +5,7 @@ import logging
 
 
 from pyrogram import idle
-from from utils.pytgcalls_patch import apply_pytgcalls_patch
+from utils.pytgcalls_patch import apply_pytgcalls_patch
 from pytgcalls.types import ChatUpdate, Device
 from pyrogram import Client
 from pyrogram.errors.exceptions import (
