@@ -3,8 +3,9 @@ import glob
 import os
 import logging
 
+
 from pyrogram import idle
-from pytgcalls import PyTgCalls, filters as call_filters
+from from utils.pytgcalls_patch import apply_pytgcalls_patch
 from pytgcalls.types import ChatUpdate, Device
 from pyrogram import Client
 from pyrogram.errors.exceptions import (
@@ -20,6 +21,7 @@ from database import user_sessions as async_user_sessions, collection as async_c
 from utils.premium_emoji import setup_premium_emoji
 
 logging.basicConfig(
+    apply_pytgcalls_patch()
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s',
     handlers=[logging.StreamHandler()],
